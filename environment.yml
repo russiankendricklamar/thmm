@@ -1,0 +1,16 @@
+name: thmm-bonds
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.11
+  - pip
+  - pip:
+      - numpy==2.4.6
+      - pandas==2.3.3
+      - scipy==1.17.1
+      - matplotlib==3.11.0
+      - hmmlearn==0.3.3
+      - arch==8.0.0
+      - scikit-learn==1.9.0
+      - statsmodels==0.14.6
+      - pyarrow==24.0.0
