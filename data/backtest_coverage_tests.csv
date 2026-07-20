@@ -1,0 +1,7 @@
+level,model,breaches,rate_pct,Kupiec_p,Christ_ind_p,Christ_cc_p
+5%,t-HMM,20,4.96,0.973,0.996,0.999
+5%,Gaussian,24,5.96,0.392,0.724,0.652
+5%,Empirical,26,6.45,0.2,0.58,0.377
+1%,t-HMM,2,0.5,0.26,0.888,0.525
+1%,Gaussian,10,2.48,0.012,0.498,0.034
+1%,Empirical,5,1.24,0.64,0.723,0.842
