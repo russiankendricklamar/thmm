@@ -1,85 +1,230 @@
-# Regime-Switching Risk in a Bond Portfolio
+# Student-t HMM for Bank Bond Portfolio Regimes
 
-Multivariate Hidden Markov Model with Student's t emissions for MOEX bond portfolio returns.
+A reproducible research pipeline for modeling regime-dependent risk in a bank bond portfolio using a multivariate Hidden Markov Model with Student's t-distributed emissions.
 
-This repository presents an independent research note on regime-dependent tail risk in a bond portfolio using a multivariate Student's t Hidden Markov Model (t-HMM). The goal is to improve tail-risk measurement relative to Gaussian benchmarks while preserving an interpretable state-space view of the market.
+The project uses daily MOEX bond-market data to identify latent market regimes, estimate regime-conditional VaR and Expected Shortfall, validate forecasts out of sample, decompose risk across portfolio segments, and analyse macro drivers of stress-regime transitions.
 
-## Overview
+## Research question
 
-The analysis is built on daily total returns for seven MOEX bond-market segments: federal loan bonds across three duration buckets, corporate bonds across three listing tiers, and mortgage-backed securities. The sample covers 904 trading days from 2021-07-29 to 2026-07-17, with total return defined as clean-price change plus coupon carry.
+Can a multivariate regime-switching model with heavy-tailed Student's t emissions provide better tail-risk calibration than a standard Gaussian approximation while retaining an economically interpretable view of market states and risk concentration?
 
-The model uses a latent Markov chain for regime dynamics and multivariate Student's t emissions for conditional returns. Parameters are estimated via ECM with a Gaussian-HMM warm start, and model selection across the number of regimes is based on BIC.
+## Repository structure
 
-## Main findings
+```text
+├── README.md                  # This file
+├── LICENSE                    # MIT License for code
+├── requirements.txt           # Python dependencies
+├── environment.yml            # Conda environment for reproducibility
+│
+├── code/                      # Numbered research pipeline
+│   ├── 01_total_return_panel.py   # MOEX ISS retrieval, total returns, segment panel
+│   ├── 02_macro_panel.py          # Macro variables: policy rate, inflation, USD/RUB
+│   ├── 03_thmm_model.py           # Student-t HMM estimation and BIC selection
+│   ├── 04_regime_summary.py       # Regime statistics and conditional VaR/ES
+│   ├── 05_backtest_hmm.py         # Rolling out-of-sample t-HMM VaR/ES backtest
+│   ├── 06_backtest_bench.py       # EVT-GPD and GARCH-t benchmark models
+│   ├── 07_es_backtest.py          # Acerbi-Szekely Expected Shortfall backtest
+│   ├── 08_var_decomposition.py    # Euler VaR/ES risk attribution by segment
+│   ├── 09_bootstrap_ci.py         # Stationary block-bootstrap confidence intervals
+│   ├── 10_backtest_dcc.py         # DCC-GARCH multivariate benchmark
+│   └── 11_macro_transitions.py    # Macro-dependent transitions and early warning
+│
+├── data/                      # Input and intermediate datasets
+├── model/                     # Fitted Student-t HMM model artifacts
+│   └── thmm_model_tr.npz
+│
+└── overleaf/
+    └── overleaf_thmm_bonds.zip    # Paper source: LaTeX project and figures
+```
 
-- BIC selects a 4-regime specification, and likelihood-ratio tests reject Gaussian emissions in favor of Student's t emissions for all tested regime counts with p-values below 0.001.
-- The four regimes are economically interpretable: quiet heavy-tail periods, sell-off episodes, sustained rallies, and high-volatility recoveries.
-- In a strict rolling out-of-sample one-day-ahead backtest, the Gaussian benchmark is rejected at the 99% VaR level, with realized breach frequency of 2.48% versus a nominal 1%.
-- The t-HMM remains correctly calibrated on both VaR and Expected Shortfall in the same out-of-sample test design.
-- Relative to EVT-GPD, GARCH-t, and DCC-GARCH, the t-HMM is competitive in tail accuracy while additionally providing interpretable regime probabilities and regime-conditional risk decomposition.
-- A reduced-form transition logit identifies the CBR key rate as the main macro driver of entry into stress regimes, with an out-of-sample early-warning signal AUC of 0.88.
+## Quick start
 
-## Data and assumptions
+### Environment
+
+Create the Conda environment:
+
+```bash
+conda env create -f environment.yml
+conda activate thmm
+```
+
+Alternatively, install dependencies with pip:
+
+```bash
+pip install -r requirements.txt
+```
+
+### Paper
+
+The research paper source is provided in:
+
+```text
+overleaf/overleaf_thmm_bonds.zip
+```
+
+Unzip the archive and upload it to Overleaf:
+
+```text
+New Project -> Upload Project
+```
+
+Use the `pdfLaTeX` compiler.
+
+### Pipeline execution
+
+Scripts are numbered in the intended order of execution:
+
+```text
+01 -> 02 -> 03 -> ... -> 11
+```
+
+Each script contains a header specifying its objective, inputs, outputs, and assumptions.
+
+> **Path note:** Some scripts were extracted from an experiment lineage and may contain path placeholders of the form `{{artifact:<id>}}`. Replace these placeholders with local paths to the appropriate files in `data/`. The output filename of one stage is generally the input filename for the next stage.
+
+Scripts `01_total_return_panel.py` and `02_macro_panel.py` require network access when raw data are downloaded again from MOEX ISS, BIS, or the World Bank. Prepared datasets in `data/` can be used when a full data refresh is not required.
+
+## Data
 
 | Item | Specification |
 |---|---|
-| Source | Moscow Exchange ISS public API |
+| Primary market-data source | Moscow Exchange ISS public API |
+| Macro sources | BIS, World Bank, MOEX |
 | Frequency | Daily |
-| Sample | 904 trading days, 2021-07-29 to 2026-07-17 |
-| Portfolio construction | Equal-weighted across 7 segments |
-| Return definition | Clean-price return plus smoothed daily coupon carry |
-| Universe | 124 liquid RUB bonds mapped into 7 segments |
-| Exclusions | Eurobonds and issues without usable MOEX daily history |
-| Outlier rule | Daily moves above 15% removed as erroneous quotes |
+| Sample period | 2021-07-29 to 2026-07-17 |
+| Number of trading days | 904 |
+| Portfolio universe | 124 liquid RUB-denominated bond issues |
+| Original portfolio | 178 ISINs |
+| Segments | 7 |
+| Portfolio construction | Equal weight across segments |
+| Return measure | Clean-price return plus daily coupon carry |
 
-The reported risk figures are based on equal segment weights, so absolute VaR, ES, and segment contributions will change under actual portfolio weights [file:1]. Coupon income is smoothed from annual coupon rates rather than modeled at exact payment dates, which improves robustness at daily frequency but simplifies cash-flow timing.
+The seven portfolio segments are:
+
+- Short federal loan bonds: maturity below 3 years
+- Medium federal loan bonds: maturity from 3 to 7 years
+- Long federal loan bonds: maturity of 7 years or more
+- Corporate bonds: MOEX Listing Level 1
+- Corporate bonds: MOEX Listing Level 2
+- Corporate bonds: MOEX Listing Level 3
+- Mortgage-backed securities
+
+Eurobonds are excluded because they are not consistently available in the MOEX daily history used in this study.
 
 ## Methodology
 
-Let \(x_t \in \mathbb{R}^7\) denote the vector of segment returns and \(s_t \in \{1, \dots, K\}\) the latent regime [file:1]. Conditional on regime \(k\), returns follow a multivariate Student's t distribution:
+The model is a multivariate Hidden Markov Model with four latent regimes.
 
-\[
-x_t \mid s_t = k \sim t_{\nu_k}(\mu_k, \Sigma_k)
-\]
+For each trading day, the model observes a vector of returns across the seven portfolio segments. The latent regime follows a Markov chain with an estimated transition matrix. Conditional on each regime, returns follow a multivariate Student's t distribution.
 
-Small values of \(\nu_k\) indicate heavier tails, while large values approach the Gaussian case. Estimation uses ECM and the Gaussian scale-mixture representation of the multivariate Student's t distribution, which improves robustness to outliers in parameter updates.
+Student's t emissions are used instead of Gaussian emissions to account for heavy tails and extreme observations. The degrees-of-freedom parameter is regime-specific: lower values indicate heavier tails.
 
-Validation is performed in a rolling one-day-ahead backtest starting after the first 500 observations, with model re-estimation every 5 trading days and 403 out-of-sample forecasts. VaR coverage is tested using Kupiec and Christoffersen tests, and Expected Shortfall is assessed with the Acerbi-Szekely backtest.
+Model estimation uses the ECM algorithm with:
+
+- Gaussian HMM warm start
+- Standardized input returns
+- Student's t Gaussian scale-mixture representation
+- Lower bound for degrees of freedom of 2.5
+- BIC-based selection of the number of regimes
+
+The selected specification contains four regimes.
 
 ## Regime summary
 
-| Regime | Interpretation | \(\nu\) | Ann. vol. | Drift (bp/day) | Expected duration |
-|---|---|---:|---:|---:|---:|
-| R1 | Quiet, heavy tails | 2.88 | 2.96% | +1.0 | 4.0 days |
-| R2 | Sell-off | 5.19 | 3.80% | -1.2 | 5.5 days |
-| R3 | Sustained rally | 14.18 | 4.01% | +3.0 | 38.8 days |
-| R4 | High volatility | 7.94 | 6.18% | +4.8 | 17.5 days |
+| Regime | Interpretation | Degrees of freedom | Annualized volatility | Daily drift | Expected duration | Stationary share |
+|---|---|---:|---:|---:|---:|---:|
+| R1 | Quiet, heavy tails | 2.88 | 2.96% | +1.0 bp | 4.0 days | 14.4% |
+| R2 | Sell-off | 5.19 | 3.80% | -1.2 bp | 5.5 days | 20.5% |
+| R3 | Sustained rally | 14.18 | 4.01% | +3.0 bp | 38.8 days | 43.1% |
+| R4 | High volatility | 7.94 | 6.18% | +4.8 bp | 17.5 days | 22.1% |
 
-An important empirical result is that the most volatile regime is not necessarily the only stress regime: the model separates a negative-drift sell-off state from a positive-drift high-volatility recovery state. This distinction is useful for risk interpretation, hedging logic, and portfolio monitoring.
+The model distinguishes a negative-drift sell-off regime from a positive-drift high-volatility recovery regime. This distinction is obscured by unconditional volatility measures.
 
-Raw market data are not distributed in this repository. Reproduction should begin with MOEX ISS data retrieval, universe mapping, total-return construction, and then model estimation and backtesting under the assumptions documented above.
+## Main results
 
-## Practical value
+- BIC selects four regimes.
+- Likelihood-ratio tests reject Gaussian emissions in favor of Student's t emissions for all tested regime counts, with p-values below 0.001.
+- The unconditional Gaussian approximation fails at the 99% VaR level in the rolling out-of-sample backtest.
+- The Gaussian model records 10 VaR breaches over 403 forecasts, or 2.48%, against a nominal 1% level.
+- The Gaussian VaR model is rejected by the Kupiec test (p = 0.012) and the Christoffersen conditional-coverage test (p = 0.034).
+- The Student-t HMM records 2 VaR breaches, or 0.50%, and is not rejected by either test.
+- Gaussian Expected Shortfall statistically understates tail losses at the 99% level under the Acerbi-Szekely backtest (p = 0.043).
+- Student-t HMM Expected Shortfall is not rejected in the same test.
+- EVT-GPD, GARCH-t, and DCC-GARCH provide comparable far-tail coverage but do not provide an interpretable regime structure.
+- The 99% risk decomposition is concentrated in credit-sensitive segments, notably Listing Level 3 corporate bonds and mortgage-backed securities.
+- The CBR key-rate level is the only statistically significant macro driver of entry into stress regimes in the reduced-form transition model.
+- The one-day-ahead stress signal achieves an out-of-sample AUC of 0.88.
 
-The main practical implication is that Gaussian assumptions materially understate far-tail risk for this portfolio at the 99% level, both for VaR and Expected Shortfall. The t-HMM addresses this while also producing a regime map, transition dynamics, and segment-level Euler decomposition that are directly useful for market-risk monitoring and stress interpretation.
+## Backtesting design
 
-The regime-conditional decomposition shows that the source of portfolio tail risk changes across states, which an unconditional metric can conceal. In particular, credit-sensitive segments such as lower-tier corporate bonds and mortgage-backed securities account for a large share of tail risk in several states.
+The out-of-sample backtest uses a rolling one-day-ahead forecast design:
+
+| Parameter | Specification |
+|---|---|
+| Initial estimation window | 500 observations |
+| Re-estimation frequency | Every 5 trading days |
+| Out-of-sample forecasts | 403 |
+| VaR confidence levels | 95% and 99% |
+| VaR tests | Kupiec unconditional coverage; Christoffersen conditional coverage |
+| ES test | Acerbi-Szekely Test 2 |
+| Benchmark models | Gaussian, historical simulation, EVT-GPD, GARCH-t, DCC-GARCH |
+
+## Risk attribution
+
+Portfolio VaR and Expected Shortfall are decomposed using Euler allocation.
+
+The unconditional 99% VaR is concentrated in:
+
+| Segment | VaR contribution |
+|---|---:|
+| Corporate bonds, Listing Level 3 | 28.3% |
+| Mortgage-backed securities | 23.6% |
+| Corporate bonds, Listing Level 1 | 14.9% |
+| Corporate bonds, Listing Level 2 | 10.2% |
+| Long federal loan bonds | 10.0% |
+| Short federal loan bonds | 8.7% |
+| Medium federal loan bonds | 4.2% |
+
+Risk concentration changes materially across regimes. For example, in quiet heavy-tail periods, tail risk is concentrated in lower-tier corporate bonds; during sell-offs, the contribution shifts toward mortgage-backed securities and top-tier corporate bonds.
 
 ## Limitations
 
-- The reported decomposition uses equal segment weights rather than an institution-specific live portfolio.
-- Eurobonds are excluded because they are not available in the MOEX history used in the study.
-- The macro-transition analysis is reduced-form and estimated on a fixed decoded path rather than through full non-homogeneous HMM estimation.
-- Degrees of freedom in near-Gaussian regimes are weakly identified in bootstrap intervals, so the robust conclusion is qualitative rather than precise for high-\(\nu\) states.
+- The portfolio is equal-weighted across segments; live portfolio weights will change absolute VaR, Expected Shortfall, and segment contributions.
+- Coupon income is approximated through smoothed daily carry rather than exact coupon-payment dates and reinvestment cash flows.
+- Eurobonds are excluded from the analysis because of incomplete MOEX historical coverage.
+- The macro-transition model is reduced-form and is estimated on a fixed decoded regime path rather than jointly within a non-homogeneous HMM.
+- Degrees-of-freedom estimates for near-Gaussian regimes are weakly identified at high values; the robust conclusion concerns the distinction between heavy-tailed and near-Gaussian states rather than a precise high degrees-of-freedom estimate.
+
+## Reproducibility
+
+The repository includes the full research pipeline, prepared data, model artifacts, and the Overleaf source for the paper.
+
+To reproduce results:
+
+1. Create the environment.
+2. Set local paths in the scripts.
+3. Run the numbered scripts in sequence.
+4. Compare generated outputs with the saved artifacts in `data/`, `model/`, and `overleaf/`.
+
+## Citation
+
+If you use this repository, please cite the research note:
+
+```text
+Galkin, E. (2026). Hidden Markov Model with Student's t Emissions
+for Regimes of a Bank Bond Portfolio Return.
+```
 
 ## License
 
-- Code: MIT License.
-- Research note in `paper/`: recommended separate license, such as CC BY 4.0 or a custom rights notice.
-- Market data: not redistributed; obtain from MOEX ISS under the relevant source terms.
+The source code in this repository is released under the MIT License.
+
+The research paper, its figures, and associated written materials are provided for reading and citation. They are not covered by the MIT License unless explicitly stated otherwise.
 
 ## Author
 
 **Egor Galkin**
 
-Quantitative research in market risk, fixed income analytics, structured products, and portfolio modeling. This repository contains independent research and does not represent the views of any employer, regulator, exchange, or affiliated institution.
+Quantitative research in market risk, fixed income, derivatives, structured products, and portfolio analytics.
+
+This repository contains independent research and does not represent the views of any employer, regulator, exchange, or affiliated institution.
