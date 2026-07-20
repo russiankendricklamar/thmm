@@ -1,15 +1,3 @@
-"""
-Этап 1. Полная доходность и сегментная панель
-Выгрузка истории MOEX ISS -> полная доходность (чистая цена + купонный carry) -> агрегация в 7 сегментов.
-Выход: segment_returns_panel_tr.parquet, portfolio_returns_tr.csv
-
-Исходный артефакт: segment_returns_panel_tr.parquet
-Среда: python (см. requirements.txt / environment.yml)
-
-ПРИМЕЧАНИЕ: пути к входным артефактам в коде — маркеры {{artifact:...}} из исходной
-сессии Claude Science. Для локального запуска замените их на пути к файлам из папки data/.
-"""
-
 import pandas as pd
 import numpy as np
 from scipy.stats import kurtosis
