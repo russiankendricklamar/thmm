@@ -1,15 +1,3 @@
-"""
-Этап 2. Обучение Student-t HMM (K=4)
-Model selection по BIC (K=2..5), t vs Gaussian (LR-тест), поиск эргодического (не поглощающего) решения, переупорядочивание по волатильности портфеля.
-Выход: thmm_model_tr.npz, model_selection_tr.parquet
-
-Исходный артефакт: thmm_model_tr.npz
-Среда: python (см. requirements.txt / environment.yml)
-
-ПРИМЕЧАНИЕ: пути к входным артефактам в коде — маркеры {{artifact:...}} из исходной
-сессии Claude Science. Для локального запуска замените их на пути к файлам из папки data/.
-"""
-
 # skill:moex-data kernel.py (auto-injected on skill load)
 import urllib.request, urllib.parse, json, time
 
