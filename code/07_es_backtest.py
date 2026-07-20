@@ -1,15 +1,3 @@
-"""
-Этап 6. Бэктест Expected Shortfall (Acerbi-Szekely Test 2)
-Калибровка ES для 5 моделей на 403 OOS-днях.
-Выход: es_backtest.csv
-
-Исходный артефакт: es_backtest.csv
-Среда: python (см. requirements.txt / environment.yml)
-
-ПРИМЕЧАНИЕ: пути к входным артефактам в коде — маркеры {{artifact:...}} из исходной
-сессии Claude Science. Для локального запуска замените их на пути к файлам из папки data/.
-"""
-
 import numpy as np
 import pandas as pd
 from scipy import stats
