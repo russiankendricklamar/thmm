@@ -8,7 +8,7 @@ This repository presents an independent research note on regime-dependent tail r
 
 The analysis is built on daily total returns for seven MOEX bond-market segments: federal loan bonds across three duration buckets, corporate bonds across three listing tiers, and mortgage-backed securities. The sample covers 904 trading days from 2021-07-29 to 2026-07-17, with total return defined as clean-price change plus coupon carry.
 
-The model uses a latent Markov chain for regime dynamics and multivariate Student's t emissions for conditional returns [file:1]. Parameters are estimated via ECM with a Gaussian-HMM warm start, and model selection across the number of regimes is based on BIC.
+The model uses a latent Markov chain for regime dynamics and multivariate Student's t emissions for conditional returns. Parameters are estimated via ECM with a Gaussian-HMM warm start, and model selection across the number of regimes is based on BIC.
 
 ## Main findings
 
