@@ -1,15 +1,3 @@
-"""
-Этап 5. Бенчмарки EVT-GPD и GARCH-t
-Пики над порогом (genpareto) и GARCH(1,1)-t (arch) на тех же OOS-днях.
-Выход: backtest_bench.parquet, backtest_all_models.csv
-
-Исходный артефакт: backtest_bench.parquet
-Среда: python (см. requirements.txt / environment.yml)
-
-ПРИМЕЧАНИЕ: пути к входным артефактам в коде — маркеры {{artifact:...}} из исходной
-сессии Claude Science. Для локального запуска замените их на пути к файлам из папки data/.
-"""
-
 import numpy as np
 import pandas as pd
 from scipy.stats import genpareto, t as student_t, norm, chi2
