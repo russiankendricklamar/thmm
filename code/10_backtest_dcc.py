@@ -1,15 +1,3 @@
-"""
-Этап 9. Многомерный бенчмарк DCC-GARCH
-GARCH(1,1)-t по 7 сегментам + DCC-динамика корреляций, портфельный VaR. Скользящий OOS-бэктест.
-Выход: backtest_dcc.parquet, dcc_coverage.csv, backtest_all_models_v2.csv
-
-Исходный артефакт: backtest_dcc.parquet
-Среда: python (см. requirements.txt / environment.yml)
-
-ПРИМЕЧАНИЕ: пути к входным артефактам в коде — маркеры {{artifact:...}} из исходной
-сессии Claude Science. Для локального запуска замените их на пути к файлам из папки data/.
-"""
-
 import numpy as np
 import pandas as pd
 import time
