@@ -1,15 +1,3 @@
-"""
-Этап 7. Разложение риска по сегментам
-Component/marginal VaR/ES по Эйлеру для эллиптического t-портфеля (безусловно и по режимам). Принимает любой вектор весов.
-Выход: var_decomposition.csv
-
-Исходный артефакт: var_decomposition.csv
-Среда: python (см. requirements.txt / environment.yml)
-
-ПРИМЕЧАНИЕ: пути к входным артефактам в коде — маркеры {{artifact:...}} из исходной
-сессии Claude Science. Для локального запуска замените их на пути к файлам из папки data/.
-"""
-
 import numpy as np
 import pandas as pd
 from scipy import stats
