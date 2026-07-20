@@ -1,15 +1,3 @@
-"""
-Этап 3. Сводка по режимам и режимо-условный риск
-Параметры режимов (nu, волатильность, дрейф, переходы, длительность), режимо-условные VaR/ES.
-Выход: regime_summary_tr.csv, regime_var_es_tr.csv, unconditional_risk_tr.csv
-
-Исходный артефакт: regime_summary_tr.csv
-Среда: python (см. requirements.txt / environment.yml)
-
-ПРИМЕЧАНИЕ: пути к входным артефактам в коде — маркеры {{artifact:...}} из исходной
-сессии Claude Science. Для локального запуска замените их на пути к файлам из папки data/.
-"""
-
 import urllib.request, urllib.parse, json, time
 import numpy as np
 import pandas as pd
