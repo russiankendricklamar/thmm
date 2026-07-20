@@ -1,15 +1,3 @@
-"""
-Этап 1b. Макроковариаты
-USD/RUB (MOEX), ключевая ставка ЦБ (BIS), инфляция (World Bank) + производные, выравнивание по датам панели.
-Выход: macro_panel.parquet
-
-Исходный артефакт: macro_panel.parquet
-Среда: python (см. requirements.txt / environment.yml)
-
-ПРИМЕЧАНИЕ: пути к входным артефактам в коде — маркеры {{artifact:...}} из исходной
-сессии Claude Science. Для локального запуска замените их на пути к файлам из папки data/.
-"""
-
 import pandas as pd
 import numpy as np
 
